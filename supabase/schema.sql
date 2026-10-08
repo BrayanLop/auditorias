@@ -43,6 +43,11 @@ create trigger tr_auditorias_auditar
   before insert or update on public.auditorias
   for each row execute function public.auditorias_auditar();
 
+-- Permisos explícitos (necesarios si el proyecto se creó con "Automatically expose new tables"
+-- desactivado). Solo para usuarios con sesión iniciada; el rol anónimo no recibe acceso.
+revoke all on public.auditorias from anon;
+grant select, insert, update on public.auditorias to authenticated;
+
 -- Seguridad: solo usuarios con sesión iniciada pueden leer y escribir.
 -- Sin estas políticas cualquiera con la URL y la clave pública podría ver los datos.
 alter table public.auditorias enable row level security;

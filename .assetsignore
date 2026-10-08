@@ -1,0 +1,12 @@
+# Archivos que NO se publican en Cloudflare (solo se sirven index.html y config.js)
+.git
+.wrangler
+.gitignore
+.assetsignore
+wrangler.jsonc
+README.md
+supabase
+node_modules
+*.xlsx
+*.xls
+*.csv

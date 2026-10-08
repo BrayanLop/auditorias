@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Q10 | Auditorías</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<style>
+:root{--o:#f15a24;--n:#202342;--bg:#f7f5f2;--line:#e7e2dc;--m:#707487}*{box-sizing:border-box}body{margin:0;font-family:Eastlane,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--n)}button,select,textarea,input{font:inherit}.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}.side{background:linear-gradient(180deg,#1a1d39,#292d50);color:#fff;padding:24px 15px}.brand{display:flex;gap:12px;align-items:center;margin-bottom:28px}.logo{width:54px;height:44px;border-radius:13px;background:linear-gradient(135deg,#ff8752,var(--o));display:grid;place-items:center;font-weight:900}.brand small{display:block;color:#c7c8d5}.side h4{font-size:11px;text-transform:uppercase;color:#aeb0c6;letter-spacing:.12em;margin:22px 0 8px}.side select,.channel{width:100%;padding:10px;border-radius:9px}.side select{background:#303557;color:#fff;border:1px solid #555a7b}.channel{border:0;background:transparent;color:#fff;text-align:left;cursor:pointer}.channel:hover,.channel.active{background:#f15a2433}.top{padding:22px 28px 10px;position:sticky;top:0;background:#f7f5f2ee;backdrop-filter:blur(10px);z-index:3}.title{display:flex;justify-content:space-between;align-items:center}.title h1{margin:0}.actions{display:flex;gap:10px;align-items:center}.upload,.export{background:var(--o);color:#fff;padding:11px 16px;border-radius:10px;font-weight:800;cursor:pointer;border:0}.export{background:var(--n)}.filters{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:10px;margin-top:15px}.filters select,.filters button{padding:10px;border:1px solid var(--line);background:#fff;border-radius:10px}.filters button{color:var(--o);font-weight:800}.content{padding:14px 28px 40px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 32px #20234212}.kpi{padding:20px}.kpi label{display:block;color:var(--m);font-size:13px}.kpi strong{display:block;font-size:30px;margin-top:9px}.muted{color:var(--m);font-size:13px}.grid{display:grid;grid-template-columns:1.3fr .7fr;gap:16px;margin-top:16px}.panel{padding:20px}.chart{height:300px}.table{margin-top:16px;overflow:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:13px 15px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}th{font-size:11px;text-transform:uppercase;color:var(--m);background:#fbfaf8}.btn,.back,.save{border:1px solid #ffc9b0;background:#fff2eb;color:#bd4319;padding:8px 11px;border-radius:8px;font-weight:800;cursor:pointer}.save{background:var(--o);color:#fff;margin-top:8px}.person{display:none}.bar{height:8px;background:#eeeae6;border-radius:99px;overflow:hidden;margin-top:6px}.bar span{display:block;height:100%;background:linear-gradient(90deg,var(--o),#ff9666)}.finding{padding:18px;margin:12px 0;border-left:4px solid var(--o)}dl{display:grid;grid-template-columns:145px 1fr;gap:10px}dt{color:var(--m);font-size:12px}dd{margin:0;font-size:13px}.tag{display:inline-block;padding:5px 9px;border-radius:99px;font-size:12px;font-weight:800;margin:2px;background:#fff0e7;color:#a5421e}.feedback{width:100%;min-height:86px;padding:10px;border:1px solid #d8d3ce;border-radius:9px;resize:vertical}.severity-select{min-width:150px;padding:8px 10px;border:1px solid #d8d3ce;border-radius:9px;background:#fff}.saved{color:#19764d;font-size:12px;margin-left:8px}.saved.err{color:#b42318}.diagnostic{font-size:11px;color:#bfc2d2;line-height:1.5;margin-top:12px}
+.login{min-height:100vh;display:grid;place-items:center;padding:16px}.login form{width:100%;max-width:380px;padding:28px}.login h1{margin:14px 0 4px;font-size:22px}.login label{display:block;font-size:13px;color:var(--m);margin:14px 0 6px}.login input{width:100%;padding:11px;border:1px solid #d8d3ce;border-radius:10px;background:#fff}.login .upload{width:100%;margin-top:18px}.login .error{color:#b42318;font-size:13px;min-height:18px;margin-top:10px}.user{font-size:12px;color:#c7c8d5;word-break:break-all}.logout{margin-top:8px;width:100%;padding:8px;border-radius:9px;border:1px solid #555a7b;background:transparent;color:#fff;cursor:pointer}.hidden{display:none!important}
+@media(max-width:1000px){.app{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}}@media(max-width:600px){.filters,.cards{grid-template-columns:1fr}.content,.top{padding-left:14px;padding-right:14px}dl{grid-template-columns:1fr}.title{align-items:flex-start}.actions{flex-direction:column}}
+</style>
+</head>
+<body>
+<div id="loginView" class="login hidden">
+  <form id="loginForm" class="card">
+    <div class="logo">Q10</div>
+    <h1>Auditorías de calidad</h1>
+    <div class="muted">Inicia sesión para continuar.</div>
+    <label for="email">Correo</label><input id="email" type="email" autocomplete="username" required>
+    <label for="password">Contraseña</label><input id="password" type="password" autocomplete="current-password" required>
+    <button class="upload" type="submit" id="loginBtn">Ingresar</button>
+    <div class="error" id="loginError"></div>
+  </form>
+</div>
+
+<div id="appView" class="app hidden"><aside class="side"><div class="brand"><div class="logo">Q10</div><div><b>Calidad del servicio</b><small>Estar para transformar</small></div></div><h4>Sesión</h4><div class="user" id="userEmail"></div><button class="logout" id="logout">Cerrar sesión</button><h4>Canales</h4><div id="channels"></div><h4>Área</h4><select id="sideArea"></select><h4>Fuente</h4><small id="source">Base de datos.</small><div id="diagnostic" class="diagnostic"></div></aside><main><header class="top"><div class="title"><div><h1>Auditorías de calidad</h1><span id="status" class="muted">Cargando…</span></div><div class="actions"><button id="export" class="export">Descargar archivo plano</button><label class="upload">Cargar Excel<input id="file" type="file" accept=".xlsx,.xls" hidden></label></div></div><div class="filters"><select id="personFilter"></select><select id="monthFilter"></select><select id="channelFilter"></select><select id="areaFilter"></select><button id="clear">Limpiar filtros</button></div></header><section class="content"><div id="dashboard"><div class="cards" id="kpis"></div><div class="grid"><div class="card panel"><h3>Hallazgos por mes</h3><div class="chart"><canvas id="trend"></canvas></div></div><div class="card panel"><h3>Hallazgos por canal</h3><div class="chart"><canvas id="channelChart"></canvas></div></div></div><div class="card table"><table><thead><tr><th>Persona</th><th>Auditorías</th><th>Hallazgos</th><th>Cumplimiento</th><th>Retroalimentaciones</th><th>Detalle</th></tr></thead><tbody id="people"></tbody></table></div></div><div id="personView" class="person"><button id="back" class="back">← Volver</button><h2 id="personTitle"></h2><div id="personSub" class="muted"></div><div class="cards" id="personKpis"></div><div class="grid"><div class="card panel"><h3>Hallazgos por mes</h3><div class="chart"><canvas id="personChart"></canvas></div></div><div class="card panel"><h3>Criterios involucrados</h3><div id="criteria"></div></div></div><h3>Detalle de hallazgos</h3><div id="findings"></div></div></section></main></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const norm = v => String(v ?? '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ');
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const cfg = window.AUDITORIAS_CONFIG || {};
+const db = supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+
+let all = [], view = [], channelsFound = [], trend, channelChart, personChart;
+
+const IGN = ['consolidado por persona', 'indicadores', 'hoja1', 'informe por persona'];
+const aliases = {
+  area: ['area auditada', 'area/cargo auditada', 'area o cargo', 'cargo', 'area'],
+  person: ['nombre del auditado', 'nombre de la persona auditada', 'auditado', 'persona'],
+  client: ['nombre del cliente', 'institucion', 'cliente'],
+  date: ['fecha y hora de la llamada', 'fecha de la conversacion', 'fecha y hora de la reunion', 'fecha y hora del correo', 'fecha del correo', 'fecha de auditoria', 'fecha y hora', 'fecha'],
+  obs: ['observaciones', 'hallazgo', 'descripcion del hallazgo'],
+  feed: ['retroalimentacion', 'texto de retroalimentacion', 'detalle de retroalimentacion'],
+  severity: ['clasificacion', 'categorizacion', 'gravedad', 'nivel del hallazgo'],
+};
+const findCol = (h, a) => h.findIndex(x => a.some(y => norm(x) === y || norm(x).includes(y)));
+
+// ───────────────────────── Lectura del Excel ─────────────────────────
+
+function dateValue(v) {
+  if (v instanceof Date && !isNaN(v)) return v;
+  if (typeof v === 'number') { const z = XLSX.SSF.parse_date_code(v); return z ? new Date(z.y, z.m - 1, z.d) : null; }
+  const s = norm(v).replace(/^(lunes|martes|miercoles|jueves|viernes|sabado|domingo),?\s*/, '');
+  const mo = { ene: 0, enero: 0, feb: 1, febrero: 1, mar: 2, marzo: 2, abr: 3, abril: 3, may: 4, mayo: 4, jun: 5, junio: 5, jul: 6, julio: 6, ago: 7, agosto: 7, sep: 8, sept: 8, septiembre: 8, oct: 9, octubre: 9, nov: 10, noviembre: 10, dic: 11, diciembre: 11 };
+  const m = s.match(/(\d{1,2})\s+(?:de\s+)?([a-z]+)\s+(?:de\s+)?(\d{4})/);
+  if (m && mo[m[2]] !== undefined) return new Date(+m[3], mo[m[2]], +m[1]);
+  const a = s.match(/(\d{4})[-/]([01]?\d)[-/]([0-3]?\d)/);
+  if (a) return new Date(+a[1], +a[2] - 1, +a[3]);
+  const b = s.match(/([0-3]?\d)[/]([01]?\d)[/](\d{4})/);
+  if (b) return new Date(+b[3], +b[2] - 1, +b[1]);
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
+}
+
+function classify(text, explicit) {
+  const e = norm(explicit);
+  if (['leve', 'moderado', 'grave'].includes(e)) return e;
+  const t = norm(text);
+  if (['informacion interna', 'datos sin autorizacion', 'manipular registros', 'trato ofensivo', 'discriminatorio', 'negar la atencion', 'condiciones no autorizadas'].some(k => t.includes(k))) return 'grave';
+  if (['informacion incorrecta', 'canal equivocado', 'sin respuesta', 'no cumplir un seguimiento', 'reproceso', 'esperas frecuentes', 'repetid', 'reincid'].some(k => t.includes(k))) return 'moderado';
+  return 'leve';
+}
+
+function detectHeader(rows) {
+  let best = { row: -1, score: -1 };
+  for (let i = 0; i < Math.min(rows.length, 30); i++) {
+    const h = rows[i].map(norm);
+    let score = 0;
+    if (findCol(h, aliases.person) >= 0) score += 5;
+    if (findCol(h, aliases.area) >= 0) score += 4;
+    if (findCol(h, aliases.date) >= 0) score += 3;
+    if (h.includes('observaciones')) score += 2;
+    if (h.includes('si') && h.includes('no')) score += 1;
+    if (score > best.score) best = { row: i, score };
+  }
+  return best.score >= 7 ? best.row : -1;
+}
+
+function findDateColumn(rows, hi, h, person) {
+  const idx = findCol(h, aliases.date);
+  if (idx >= 0) return idx;
+  for (let j = person + 1; j < h.length; j++) {
+    let valid = 0;
+    for (let i = hi + 1; i < Math.min(rows.length, hi + 15); i++) if (dateValue(rows[i][j])) valid++;
+    if (valid >= 2) return j;
+  }
+  return -1;
+}
+
+// Hash estable (cyrb53 doble) para identificar cada auditoría por su contenido
+function hash(str) {
+  const h = seed => {
+    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+    for (let i = 0; i < str.length; i++) {
+      const ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+  };
+  return h(1) + h(2);
+}
+
+const isoDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+function parseSheet(ws, name, archivo, repetidos) {
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
+  const hi = detectHeader(rows);
+  if (hi < 0) return { items: [], reason: 'encabezado no reconocido' };
+  const h = rows[hi].map(v => String(v ?? '').trim());
+  const area = findCol(h, aliases.area), person = findCol(h, aliases.person), client = findCol(h, aliases.client);
+  const date = findDateColumn(rows, hi, h, person), obs = findCol(h, aliases.obs), feed = findCol(h, aliases.feed), sev = findCol(h, aliases.severity);
+  const si = h.findIndex(x => norm(x) === 'si');
+  const criteria = [];
+  for (let i = 0; i < hi; i++) {
+    const c = rows[i].findIndex(v => norm(v) === 'criterio');
+    if (c >= 0) {
+      for (let j = c + 1; j < rows[i].length; j++) {
+        const n = String(rows[i][j] ?? '').trim();
+        if (n && !['si', 'no', 'total', 'puntaje', 'contador cumple', 'contador no cumple'].includes(norm(n))) criteria.push({ idx: j, name: n });
+      }
+      break;
+    }
+  }
+  if (!criteria.length && date >= 0) {
+    const stop = obs >= 0 ? obs : h.length;
+    for (let j = date + 1; j < stop; j++) {
+      const sample = rows.slice(hi + 1, hi + 12).map(r => r[j]).filter(v => [0, 1, '0', '1', 'N/A', 'n/a'].includes(v));
+      if (sample.length >= 2) criteria.push({ idx: j, name: h[j] || ('Criterio ' + (criteria.length + 1)) });
+    }
+  }
+  if (area < 0 || person < 0 || date < 0 || !criteria.length) return { items: [], reason: 'faltan columnas clave' };
+
+  const items = [];
+  for (let i = hi + 1; i < rows.length; i++) {
+    const r = rows[i], d = dateValue(r[date]);
+    if (!r[area] || !r[person] || !d) continue;
+    const vals = criteria.map(c => ({ name: c.name, val: r[c.idx] })).filter(x => [0, 1, '0', '1'].includes(x.val)).map(x => ({ name: x.name, val: +x.val }));
+    if (!vals.length) continue;
+    const cats = vals.filter(x => x.val === 0).map(x => x.name);
+    const ob = obs >= 0 ? String(r[obs] ?? '').trim() : '';
+    const personName = String(r[person]).trim(), clientName = client >= 0 ? String(r[client] ?? '').trim() : '';
+    // El id depende del contenido; si hay filas idénticas se numeran para no fusionarlas.
+    const base = [name, personName, isoDate(d), clientName, ob, JSON.stringify(vals)].join('|');
+    const n = (repetidos[base] = (repetidos[base] || 0) + 1);
+    items.push({
+      id: hash(base + '#' + n), channel: name, area: String(r[area]).trim(), person: personName, client: clientName,
+      date: d, vals, cats, finding: cats.length > 0, feedbackDone: si >= 0 && (+r[si] === 1 || r[si] === true),
+      observation: ob, feedback: feed >= 0 ? String(r[feed] ?? '').trim() : '', severity: classify(ob, sev >= 0 ? r[sev] : ''),
+      archivo,
+    });
+  }
+  return { items, reason: items.length + ' registros' };
+}
+
+// ───────────────────────── Base de datos ─────────────────────────
+
+const toRow = x => ({
+  id: x.id, canal: x.channel, area: x.area, persona: x.person, cliente: x.client || null, fecha: isoDate(x.date),
+  criterios: x.vals, criterios_incumplidos: x.cats, hallazgo: x.finding, retro_realizada: x.feedbackDone,
+  observacion: x.observation || null, archivo_origen: x.archivo || null,
+});
+
+const fromRow = r => {
+  const [y, m, d] = r.fecha.split('-').map(Number);
+  return {
+    id: r.id, channel: r.canal, area: r.area, person: r.persona, client: r.cliente || '', date: new Date(y, m - 1, d),
+    vals: r.criterios || [], cats: r.criterios_incumplidos || [], finding: r.hallazgo, feedbackDone: r.retro_realizada,
+    observation: r.observacion || '', feedback: r.retroalimentacion || '', severity: r.severidad || 'leve', archivo: r.archivo_origen,
+  };
+};
+
+async function fetchAll() {
+  const page = 1000, rows = [];
+  for (let from = 0; ; from += page) {
+    const { data, error } = await db.from('auditorias').select('*').order('fecha').range(from, from + page - 1);
+    if (error) throw error;
+    rows.push(...data);
+    if (data.length < page) break;
+  }
+  return rows.map(fromRow);
+}
+
+// Inserta las auditorías nuevas y actualiza los datos del Excel de las existentes,
+// sin pisar la retroalimentación ni la categorización que ya se editaron en la página.
+async function saveParsed(items) {
+  const existentes = new Set(all.map(x => x.id));
+  const nuevas = items.filter(x => !existentes.has(x.id)).map(x => ({ ...toRow(x), retroalimentacion: x.feedback || null, severidad: x.severity }));
+  const actualizadas = items.filter(x => existentes.has(x.id)).map(toRow);
+  for (const lote of [nuevas, actualizadas]) {
+    for (let i = 0; i < lote.length; i += 500) {
+      const { error } = await db.from('auditorias').upsert(lote.slice(i, i + 500), { onConflict: 'id' });
+      if (error) throw error;
+    }
+  }
+  return { nuevas: nuevas.length, actualizadas: actualizadas.length };
+}
+
+async function refresh(mensaje) {
+  $('#status').textContent = 'Cargando…';
+  all = await fetchAll();
+  channelsFound = uniq(all.map(x => x.channel));
+  $('#status').textContent = mensaje || `${all.length.toLocaleString('es-CO')} interacciones en la base de datos`;
+  buildFilters();
+  apply();
+}
+
+async function load(buf, name) {
+  const wb = XLSX.read(buf, { type: 'array', cellDates: true }), report = [], items = [], repetidos = {};
+  wb.SheetNames.filter(n => !IGN.includes(norm(n))).forEach(n => {
+    const x = parseSheet(wb.Sheets[n], n, name, repetidos);
+    items.push(...x.items);
+    report.push(n + ': ' + x.reason);
+  });
+  $('#diagnostic').innerHTML = report.map(esc).join('<br>');
+  $('#source').textContent = name;
+  if (!items.length) { $('#status').textContent = 'El archivo no tiene registros reconocibles.'; return; }
+  $('#status').textContent = 'Guardando en la base de datos…';
+  try {
+    const r = await saveParsed(items);
+    await refresh();
+    $('#status').textContent = `Archivo guardado: ${r.nuevas} auditorías nuevas, ${r.actualizadas} ya existían · ${all.length.toLocaleString('es-CO')} en total`;
+  } catch (e) {
+    console.error(e);
+    $('#status').textContent = 'No se pudo guardar en la base de datos: ' + (e.message || e);
+  }
+}
+
+// ───────────────────────── Vista ─────────────────────────
+
+const uniq = a => [...new Set(a.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
+const month = d => d.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }).replace(/^./, c => c.toUpperCase());
+
+function options(el, label, a) {
+  const actual = el.value;
+  el.innerHTML = `<option value="">${label}</option>` + a.map(x => `<option>${esc(x)}</option>`).join('');
+  if (a.includes(actual)) el.value = actual;
+}
+
+function buildFilters() {
+  const areas = uniq(all.map(x => x.area));
+  options($('#personFilter'), 'Todas las personas', uniq(all.map(x => x.person)));
+  options($('#monthFilter'), 'Todos los meses', uniq(all.map(x => month(x.date))));
+  options($('#channelFilter'), 'Todos los canales', channelsFound);
+  options($('#areaFilter'), 'Todas las áreas', areas);
+  options($('#sideArea'), 'Todas las áreas', areas);
+  $('#channels').innerHTML = '<button class="channel active" data-v="">Todos los canales</button>' + channelsFound.map(c => `<button class="channel" data-v="${esc(c)}">${esc(c)}</button>`).join('');
+  document.querySelectorAll('.channel').forEach(b => b.onclick = () => {
+    $('#channelFilter').value = b.dataset.v;
+    document.querySelectorAll('.channel').forEach(x => x.classList.toggle('active', x === b));
+    apply();
+  });
+}
+
+function stats(a) {
+  const f = a.filter(x => x.finding), ev = a.flatMap(x => x.vals), pass = ev.filter(x => +x.val === 1).length;
+  return { aud: a.length, find: f.length, comp: ev.length ? 100 * pass / ev.length : 0, feed: f.filter(x => x.feedbackDone).length };
+}
+const pct = n => n.toLocaleString('es-CO', { maximumFractionDigits: 1 }) + '%';
+const kpi = (a, b) => `<div class="card kpi"><label>${a}</label><strong>${b}</strong></div>`;
+
+function apply() {
+  const p = $('#personFilter').value, m = $('#monthFilter').value, c = $('#channelFilter').value, a = $('#areaFilter').value || $('#sideArea').value;
+  view = all.filter(x => (!p || x.person === p) && (!m || month(x.date) === m) && (!c || x.channel === c) && (!a || x.area === a));
+  render();
+}
+
+function render() {
+  const s = stats(view);
+  $('#kpis').innerHTML = kpi('Total auditorías', s.aud) + kpi('Hallazgos', s.find) + kpi('Cumplimiento', pct(s.comp)) + kpi('Retroalimentaciones realizadas', s.feed);
+  const g = {};
+  view.forEach(x => (g[x.person] ??= []).push(x));
+  $('#people').innerHTML = Object.entries(g).sort((a, b) => b[1].length - a[1].length).map(([p, r]) => {
+    const z = stats(r);
+    return `<tr><td><b>${esc(p)}</b><br><span class="muted">${esc(uniq(r.map(x => x.area)).join(' · '))}</span></td><td>${z.aud}</td><td>${z.find}</td><td>${pct(z.comp)}</td><td>${z.feed}</td><td><button class="btn" data-p="${esc(p)}">Ver detalle</button></td></tr>`;
+  }).join('') || '<tr><td colspan="6">Sin registros para los filtros seleccionados.</td></tr>';
+  document.querySelectorAll('.btn').forEach(b => b.onclick = () => showPerson(b.dataset.p));
+  draw();
+}
+
+const chartOptions = () => ({ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } } });
+
+function draw() {
+  const bm = {}, bc = {};
+  view.filter(x => x.finding).forEach(x => {
+    const k = new Date(x.date.getFullYear(), x.date.getMonth()).toISOString();
+    bm[k] = (bm[k] || 0) + 1;
+    bc[x.channel] = (bc[x.channel] || 0) + 1;
+  });
+  const ks = Object.keys(bm).sort();
+  trend?.destroy();
+  trend = new Chart($('#trend'), { type: 'line', data: { labels: ks.map(k => month(new Date(k))), datasets: [{ data: ks.map(k => bm[k]), borderColor: '#f15a24', backgroundColor: '#f15a2420', fill: true, tension: .35 }] }, options: chartOptions() });
+  channelChart?.destroy();
+  channelChart = new Chart($('#channelChart'), { type: 'doughnut', data: { labels: Object.keys(bc), datasets: [{ data: Object.values(bc), backgroundColor: ['#f15a24', '#202342', '#ff9867', '#777b92', '#d9a23a', '#5d9b9b', '#8e6bbd'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+}
+
+function showPerson(p) {
+  const r = view.filter(x => x.person === p), s = stats(r);
+  $('#dashboard').style.display = 'none';
+  $('#personView').style.display = 'block';
+  $('#personTitle').textContent = p.toUpperCase();
+  $('#personSub').textContent = uniq(r.map(x => x.area)).join(' · ') + ' · ' + uniq(r.map(x => x.channel)).join(' · ');
+  $('#personKpis').innerHTML = kpi('Auditorías', s.aud) + kpi('Hallazgos', s.find) + kpi('Cumplimiento', pct(s.comp)) + kpi('Retroalimentaciones', s.feed);
+  const bm = {};
+  r.filter(x => x.finding).forEach(x => { const k = new Date(x.date.getFullYear(), x.date.getMonth()).toISOString(); bm[k] = (bm[k] || 0) + 1; });
+  const ks = Object.keys(bm).sort();
+  personChart?.destroy();
+  personChart = new Chart($('#personChart'), { type: 'bar', data: { labels: ks.map(k => month(new Date(k))), datasets: [{ data: ks.map(k => bm[k]), backgroundColor: '#f15a24', borderRadius: 8 }] }, options: chartOptions() });
+  const ct = {};
+  r.filter(x => x.finding).forEach(x => x.cats.forEach(c => ct[c] = (ct[c] || 0) + 1));
+  const mx = Math.max(1, ...Object.values(ct));
+  $('#criteria').innerHTML = Object.entries(ct).sort((a, b) => b[1] - a[1]).map(([c, n]) => `<div><b>${esc(c)}</b><span style="float:right">${n}</span><div class="bar"><span style="width:${100 * n / mx}%"></span></div></div>`).join('');
+  $('#findings').innerHTML = r.filter(x => x.finding).sort((a, b) => b.date - a.date).map(x => `<article class="card finding"><b>${x.date.toLocaleDateString('es-CO')}</b> · ${esc(x.client || 'Cliente no registrado')}<dl><dt>Hallazgo</dt><dd>${esc(x.observation).replace(/\n/g, '<br>') || 'Sin texto registrado'}</dd><dt>Retroalimentación</dt><dd><textarea class="feedback" id="fb-${x.id}">${esc(x.feedback)}</textarea><button class="save" data-id="${x.id}">Guardar</button><span class="saved" id="ok-${x.id}"></span></dd><dt>Criterio</dt><dd>${x.cats.map(c => `<span class="tag">${esc(c)}</span>`).join('')}</dd><dt>Categorización</dt><dd><select class="severity-select" data-sev-id="${x.id}"><option value="leve" ${x.severity === 'leve' ? 'selected' : ''}>Leve</option><option value="moderado" ${x.severity === 'moderado' ? 'selected' : ''}>Moderado</option><option value="grave" ${x.severity === 'grave' ? 'selected' : ''}>Grave</option></select><span class="saved" id="oksev-${x.id}"></span></dd></dl></article>`).join('');
+  document.querySelectorAll('.save').forEach(b => b.onclick = () => saveFeedback(b.dataset.id));
+  document.querySelectorAll('.severity-select').forEach(s => s.onchange = () => saveSeverity(s.dataset.sevId, s.value));
+  scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function aviso(el, ok, texto) {
+  el.textContent = texto;
+  el.classList.toggle('err', !ok);
+  if (ok) setTimeout(() => el.textContent = '', 2000);
+}
+
+async function saveFeedback(id) {
+  const x = all.find(z => z.id === id), ta = document.getElementById('fb-' + id), ok = document.getElementById('ok-' + id);
+  if (!x || !ta) return;
+  const valor = ta.value.trim();
+  const { error } = await db.from('auditorias').update({ retroalimentacion: valor }).eq('id', id);
+  if (error) return aviso(ok, false, 'No se pudo guardar');
+  x.feedback = valor;
+  aviso(ok, true, 'Guardado');
+}
+
+async function saveSeverity(id, value) {
+  const x = all.find(z => z.id === id), ok = document.getElementById('oksev-' + id);
+  if (!x) return;
+  const { error } = await db.from('auditorias').update({ severidad: value }).eq('id', id);
+  if (error) return aviso(ok, false, 'No se pudo guardar');
+  x.severity = value;
+  aviso(ok, true, 'Guardado');
+}
+
+function csvCell(v) { const s = String(v ?? '').replace(/\r?\n/g, ' '); return '"' + s.replace(/"/g, '""') + '"'; }
+
+function exportFlat() {
+  if (!all.length) return;
+  const base = view.length ? view : all, persons = {};
+  base.forEach(x => (persons[x.person] ??= []).push(x));
+  const header = ['Fecha', 'Nombre de la persona', 'Área o cargo', 'Canal', 'Cantidad auditados', 'Cantidad de hallazgos', 'Criterio', 'Categorización', 'Retroalimentación'], rows = [];
+  Object.values(persons).forEach(group => {
+    const s = stats(group);
+    group.filter(x => x.finding).forEach(x => rows.push([x.date.toLocaleDateString('es-CO'), x.person, x.area, x.channel, s.aud, s.find, x.cats.join(' + '), x.severity, x.feedback]));
+  });
+  const csv = '﻿' + [header, ...rows].map(r => r.map(csvCell).join(';')).join('\r\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = 'auditorias_calidad_' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ───────────────────────── Sesión ─────────────────────────
+
+async function mostrarApp(session) {
+  $('#loginView').classList.add('hidden');
+  $('#appView').classList.remove('hidden');
+  $('#userEmail').textContent = session.user.email;
+  try { await refresh(); }
+  catch (e) { console.error(e); $('#status').textContent = 'No se pudieron cargar los datos: ' + (e.message || e); }
+}
+
+function mostrarLogin() {
+  all = []; view = [];
+  $('#appView').classList.add('hidden');
+  $('#loginView').classList.remove('hidden');
+}
+
+$('#loginForm').onsubmit = async e => {
+  e.preventDefault();
+  $('#loginError').textContent = '';
+  $('#loginBtn').disabled = true;
+  const { data, error } = await db.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value });
+  $('#loginBtn').disabled = false;
+  if (error) { $('#loginError').textContent = 'Correo o contraseña incorrectos.'; return; }
+  $('#password').value = '';
+  mostrarApp(data.session);
+};
+
+$('#logout').onclick = async () => { await db.auth.signOut(); mostrarLogin(); };
+
+['personFilter', 'monthFilter', 'channelFilter', 'areaFilter'].forEach(id => $('#' + id).onchange = apply);
+$('#sideArea').onchange = () => { $('#areaFilter').value = $('#sideArea').value; apply(); };
+$('#clear').onclick = () => { ['personFilter', 'monthFilter', 'channelFilter', 'areaFilter', 'sideArea'].forEach(id => $('#' + id).value = ''); apply(); };
+$('#back').onclick = () => { $('#personView').style.display = 'none'; $('#dashboard').style.display = 'block'; };
+$('#export').onclick = exportFlat;
+$('#file').onchange = e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => load(rd.result, f.name);
+  rd.readAsArrayBuffer(f);
+  e.target.value = '';
+};
+
+(async () => {
+  if (!cfg.supabaseUrl || cfg.supabaseUrl.includes('TU-PROYECTO')) {
+    document.body.innerHTML = '<p style="padding:24px">Falta configurar <b>config.js</b> con la URL y la clave pública de Supabase.</p>';
+    return;
+  }
+  const { data } = await db.auth.getSession();
+  data.session ? mostrarApp(data.session) : mostrarLogin();
+})();
+</script>
+</body>
+</html>

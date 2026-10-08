@@ -399,7 +399,15 @@ $('#loginForm').onsubmit = async e => {
   $('#loginBtn').disabled = true;
   const { data, error } = await db.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value });
   $('#loginBtn').disabled = false;
-  if (error) { $('#loginError').textContent = 'Correo o contraseña incorrectos.'; return; }
+  if (error) {
+    const motivos = {
+      'Invalid login credentials': 'Correo o contraseña incorrectos.',
+      'Email not confirmed': 'El usuario no está confirmado. Confírmalo en Supabase (Authentication → Users).',
+    };
+    $('#loginError').textContent = motivos[error.message] || ('No se pudo iniciar sesión: ' + error.message);
+    console.error('Login', error);
+    return;
+  }
   $('#password').value = '';
   mostrarApp(data.session);
 };
